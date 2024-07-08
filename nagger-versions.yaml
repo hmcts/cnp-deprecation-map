@@ -41,11 +41,11 @@ helm:
     version: "1.3.0"
     date_deadline: "2024-06-30"
   blobstorage:
-    version: "1.0.1"
-    date_deadline: "2023-08-13"
+    version: "2.0.1"
+    date_deadline: "2024-07-30"
   servicebus:
-    version: "1.0.4"
-    date_deadline: "2023-08-13"
+    version: "1.0.6"
+    date_deadline: "2024-07-30"
   ccd:
     version: "8.0.27"
     date_deadline: "2023-03-29"
