@@ -59,4 +59,4 @@ gradle:
 npm:
   angular/core:
     version: "16"
-    date_deadline: "2024-09-18"
+    date_deadline: "2024-10-18"
