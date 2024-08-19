@@ -60,3 +60,6 @@ npm:
   angular/core:
     version: "15"
     date_deadline: "2024-03-25"
+    0:
+      version: "16"
+      date_deadline: "2024-09-18"
