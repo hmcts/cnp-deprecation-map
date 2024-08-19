@@ -43,11 +43,11 @@ if [[ $angular_version -lt $latest_supported_version ]];then
     git config user.email github-actions@github.com
     git pull
     git checkout -b angular-update
-    yq eval -i '.npm["angular/core"][0].version = '\"$latest_supported_version\" $deprecation_config_file
+    yq eval -i '.npm["angular/core"].version = '\"$latest_supported_version\" $deprecation_config_file
     # Add 30 days
     one_month_from_now=$(expr $current_date + 2592000)
     one_month_from_now=$(timestamp_to_date "$one_month_from_now")
-    yq eval -i '.npm["angular/core"][0].date_deadline = '\"$one_month_from_now\" $deprecation_config_file
+    yq eval -i '.npm["angular/core"].date_deadline = '\"$one_month_from_now\" $deprecation_config_file
     git add "$deprecation_config_file"
     git commit -m "Auto-Updating Angular Version"
     git push --set-upstream origin angular-update
