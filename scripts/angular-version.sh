@@ -4,6 +4,35 @@ deprecation_config_file="../nagger-versions.yaml"
 angular_version=$(yq eval '.npm["angular/core"].version' "$deprecation_config_file")
 echo "Current version is: ${angular_version}"
 
+
+get_stuff(subkey) {
+
+    do stuff
+    return version, deadline, endpoint
+}
+
+pr_to_github() {
+    do our pr stuff
+}
+keys_for_endpoint_checking = ["terraform", "helm", "angular"]
+
+for each key in keys_for_endpoint_checking:
+    if key != "angular":
+    version, deadline, endpoint = get_stuff(subkey)
+    deadline = subkey.date_deadline
+    endpoint =  subkey.release_endpoint
+
+    make call to endpoint
+
+    compare
+
+    update file if needed - do we want to update directly or store and increment a chang counter so we're only checking out after we've evaluated and need to make changes
+        - then we can run through the dict or whatever and make the actual file changes post new branch checkout 
+    else:
+     run our angluar stuff
+reiteration
+
+
 date_to_timestamp() {
     # If debugging locally use below date instead   
     # date -jf "%Y-%m-%d" "$1" +%s
