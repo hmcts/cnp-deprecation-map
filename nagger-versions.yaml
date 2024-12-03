@@ -73,3 +73,4 @@ npm:
   angular/core:
     version: "16"
     date_deadline: "2024-10-18"
+    release_api: "https://endoflife.date/api/angular.json"

@@ -1,177 +1,262 @@
 #!/bin/bash
 anne_token=""
 deprecation_config_file="../nagger-versions.yaml"
-# Use yq to extract the version for Angular Core
-# angular_version=$(yq eval '.npm["angular/core"].version' "$deprecation_config_file")
-# echo "Current version is: ${angular_version}"
-
+# declare global arrays
+declare -a minor_upgrades major_upgrades subkeys
 
 extract_data() {
+
     local key="$1" 
     local subkey="$2" 
 
     version=$(yq eval ".${key}[\"${subkey}\"] | .version" "$deprecation_config_file")
     deadline=$(yq eval ".${key}[\"${subkey}\"] | .date_deadline" "$deprecation_config_file")
-    endpoint=$(yq eval ".${key}[\"${subkey}\"] | .release_api" "$deprecation_config_file")
 
+    # Check if release_api key exists - get its value - if not, set to undefined
+    if yq eval ".${key}[\"${subkey}\"] | .release_api" "$deprecation_config_file" >/dev/null 2>&1; then
+        endpoint=$(yq eval ".${key}[\"${subkey}\"] | .release_api" "$deprecation_config_file")
+    else
+        endpoint="undefined"
+    fi
     echo "$version,$deadline,$endpoint"
 }
 
-# This will get the latest standard release and ignore release candidates, prereleases & alpha/beta, etc
-get_latest_version() {
+get_latest_version_github() {
     local endpoint="$1"
 
+    # Get the latest standard release and ignore release candidates, prereleases & alpha/beta, etc
     versions=$(curl -s "$endpoint" | jq -r '.[] | select(.prerelease == false) | .tag_name' | sed 's/^[vV]//' | sort -V -r)
-
     for version in $versions; do
-
         if [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]$ ]]; then
             latest_version=$version
             break
         fi
-
     done
 
     echo "$latest_version"
 }
 
+get_latest_version_eol() {
+    local endpoint="$1"
+    local version="$2"
+    local key="$3"
+    local subkey="$4"
+
+    eol_data=$(curl -s "$endpoint" | jq -c '.[]')
+
+    # Get the current date in Unix timestamp
+    current_date=$(date +%s)
+    min_diff=""
+    latest_supported_version=""
+
+    for entry in ${eol_data}; do
+        eol=$(echo "${entry}" | jq -r '.eol')
+        eol_date=$(date_to_timestamp "$eol")
+
+        # Calculate the difference between current date and end of life date
+        diff=$((eol_date - current_date))
+        abs_diff=${diff#-}
+
+        # Check if the difference is smaller than the minimum or if it's the first iteration
+        if [ -z "$min_diff" ] || [ "$abs_diff" -lt "$min_diff" ]; then
+            min_diff="$abs_diff"
+            latest_supported_version=$(echo "${entry}" | jq -r '.cycle')
+        fi
+    done
+
+    echo "Cycle with closest end of life date to current date: $latest_supported_version"
+
+    echo "$latest_supported_version"
+}
+
 compare_versions() {
     local current_version="$1"
     local latest_version="$2"
+    local key="$3"
+    local subkey="$4"
 
-    # Extract major versions for comparison
+    # Extract major version from nagger & latest version for comparison
     current_major="${current_version%%.*}"
     required_major="${latest_version%%.*}"
 
-    # Check for major version changes
+    # Detect major version change - break if detected
     if [[ "$current_major" -ne "$required_major" ]]; then
         echo "Major version change detected: Current=$current_major, Required=$required_major"
-        echo "This may indicate breaking changes."
+        major_upgrades["$key:$subkey"]="$latest_version"
+        return
     fi
 
-    # Compare full versions using sort -V
+    # Check if the current version needs a minor version upgrade
     if [ "$(printf '%s\n' "$current_version" "$latest_version" | sort -V | head -n 1)" = "$latest_version" ]; then
         echo "Version is sufficient: $current_version"
     else
         echo "Version is outdated: $current_version (minimum required: $latest_version)"
+        minor_upgrades["$key:$subkey"]="$latest_version"
     fi
 }
 
+date_to_timestamp() {
+    # If debugging locally use below date instead   
+    # date -jf "%Y-%m-%d" "$1" +%s
+    date -d "$1" +%s
+}
 
-keys=("terraform" "helm" "npm")
-declare -a subkeys  # Regular indexed array
+timestamp_to_date() {
+    date -d "@$1" "+%Y-%m-%d"
+}
 
-for key in "${keys[@]}"; do
-    if [[ "${key}" == "npm" ]]; then
-        echo "npm"
-    else
+update_nagger() {
+    local key="$1"
+    local subkey="$2"
+    local latest_version="$3"
+
+    # Update the YAML file using yq
+    yq eval -i ".${key}[\"${subkey}\"].version = \"$latest_version\"" "$deprecation_config_file"
+    
+    # Calculate the new deadline date
+    one_month_from_now=$(expr "$current_date" + 2592000)
+    one_month_from_now=$(timestamp_to_date "$one_month_from_now")
+
+    # Update nagger version yaml with the new deadline date
+    yq eval -i ".${key}[\"${subkey}\"].date_deadline = \"$one_month_from_now\"" "$deprecation_config_file"
+}
+
+create_branch() {
+    local pr_type="$1"
+
+    if [ "$pr_type" == "minor" ]; then
+        branch="minor-updates"
+        upgrades=""
+
+        git checkout master
+        git checkout -b $branch
         
-         # Clear the subkeys array for the new key
-        subkeys=()
+        # loop minor_upgrades entries & split key on : deliminater to get key & subkey
+        for entry in "${minor_upgrades[@]}"; do
+            IFS=":" read -r key subkey <<< "$entry"
+            # get value of entry which is the new version
+            version=${minor_upgrades["$key:$subkey"]}
+            # update nagger versions yaml with new version
+            update_nagger "$key" "$subkey" "$version"
 
-        # Read the output of yq eval line by line and append to the array
-        while IFS= read -r subkey; do
-            subkeys+=("$subkey")
-        done < <(yq eval ".${key} | keys | .[]" "$deprecation_config_file")
-
-        # Loop through the subkeys array
-        for subkey in "${subkeys[@]}"; do
-            # Call the function and store the returned values
-            data=$(extract_data "${key}" "${subkey}")
-
-            # Split the result into separate variables
-            IFS=',' read -r version deadline endpoint <<< "$data"
-
-            # Access the individual values
-            echo "Subkey: $subkey"
-            echo "Version: $version"
-            echo "Deadline: $deadline"
-            echo "Endpoint: $endpoint"
-
-            endpoint_token=$(echo "$endpoint" | sed "s|https://|https://$anne_token@|")
-            #echo "$endpoint_token"
-
-            latest_version=$(get_latest_version "$endpoint_token")
-
-            compare_versions "$version" "$latest_version"
-
+            # create comma-separated string of components with minor upgrades 
+            if [[ -z "$upgrades" ]]; then
+                    upgrades="$subkey"
+                else
+                    upgrades="$upgrades, $subkey"
+            fi
         done
+
+        # commit & create minor upgrades PR
+        commit_message="Auto-Updating minor versions - $upgrades"
+        create_pr $branch "$commit_message" "$upgrades"
     fi
+
+    # loop major_upgrades entries & split key on : deliminater to get key & subkey
+    if [ "$pr_type" = "major" ]; then
+        for entry in "${major_upgrades[@]}"; do
+            git checkout master
+            IFS=":" read -r key subkey <<< "$entry"
+
+            # shorten terraform provider keys as they're quite long
+            if [ "$key" == "terraform" ] && [ ! "$subkey" == "terraform" ]; then
+                component_name=${subkey#*/}
+            else
+                component_name=$subkey
+            fi
+
+            branch="$key-$component_name-major-update"
+            git checkout -b "$branch"
+
+            # get value of entry which is the new version
+            version=${major_upgrades["$key:$subkey"]}
+            # update nagger versions yaml with new version
+            update_nagger "$key" "$subkey" "$version"
+
+            # commit & create PR - one for each major upgrade
+            commit_message="Auto-Updating major version - $key $component_name"
+            create_pr "$branch" "$commit_message"
+        done
+    fi  
+}
+
+create_pr() {
+    local branch="$1"
+    local commit_message="$2"
+
+    # create the PR & push to origin remote
+    git add "$deprecation_config_file"
+    git commit -m "$commit_message"
+    git push --set-upstream origin "$branch"
+    pr_args=(
+        --title "$commit_message"
+        --body "$commit_message"
+        --base master
+        --head "$branch"
+    )
+    gh pr create "${pr_args[@]}"
+}
+
+
+### MAIN ###
+# declare top-level keys to iterate
+keys=("terraform" "helm" "npm")
+
+for key in "${keys[@]}"; do     
+    # Clear the subkeys array for each new key
+    subkeys=()
+
+    # Read the output of yq line by line and append to the subkeys array
+    while IFS= read -r subkey; do
+        subkeys+=("$subkey")
+    done < <(yq eval ".${key} | keys | .[]" "$deprecation_config_file")
+
+    # Loop subkeys & extract version, deadline, and release_api from nagger yaml
+    for subkey in "${subkeys[@]}"; do
+        data=$(extract_data "${key}" "${subkey}")
+        IFS=',' read -r version deadline endpoint <<< "$data"
+
+        # check endpoint
+        case "$endpoint" in
+            undefined)
+                # If release_api is undefined break the loop
+                break
+                ;;
+            *github.com*)
+                # insert PAT to increase GH rate-limit
+                endpoint_token=$(echo "$endpoint" | sed "s|https://|https://$anne_token@|")
+                # Get latest stable version from github API then compare with nagger version
+                latest_version=$(get_latest_version_github "$endpoint_token")
+                compare_versions "$version" "$latest_version" "$key" "$subkey"
+                ;;
+            *endoflife.date*)
+                # Get latest supported version from endoflife.date API then compare with nagger version
+                latest_version=$(get_latest_version_eol "$endpoint" "$version" "$key" "$subkey")
+                compare_versions "$version" "$latest_version" "$key" "$subkey"
+                ;;
+            *)
+                # We should never hit this case due to the use of "undefined" above
+                # Here as a catch-all anyway, just in case...
+                echo "Could not determine release_api (main):" >&2
+                echo "key: $key, subkey: $subkey, release_api: $endpoint" >&2
+                exit 1
+                ;;
+        esac
+    done
 done
 
+# Global upgrade arrays should now be populated here
+# Check if there are any upgrades to be made
+if [ ${#major_upgrades[@]} -gt 0 ] || [ ${#minor_upgrades[@]} -gt 0 ]; then
+    git config user.name github-actions
+    git config user.email github-actions@github.com
+    git pull
 
-# for each key in keys_for_endpoint_checking:
-#     if key != "angular":
-#     version, deadline, endpoint = get_stuff(subkey)
-#     deadline = subkey.date_deadline
-#     endpoint =  subkey.release_endpoint
+    if [ ${#minor_upgrades[@]} -gt 0 ]; then
+        create_branch "minor"
+    fi
 
-#     make call to endpoint
-
-#     compare
-
-#     update file if needed - do we want to update directly or store and increment a chang counter so we're only checking out after we've evaluated and need to make changes
-#         - then we can run through the dict or whatever and make the actual file changes post new branch checkout 
-#     else:
-#      run our angluar stuff - npm key could expand for more than just singualr anuglar but the code in this script is angular specific so we should check the subkey as well
-# reiteration
-
-
-# date_to_timestamp() {
-#     # If debugging locally use below date instead   
-#     # date -jf "%Y-%m-%d" "$1" +%s
-#     date -d "$1" +%s
-# }
-# timestamp_to_date() {
-#     date -d "@$1" "+%Y-%m-%d"
-# }
-
-# angular_eol_data=$(curl -s https://endoflife.date/api/angular.json | jq -c '.[]')
-
-# # Get the current date in Unix timestamp
-# current_date=$(date +%s)
-# min_diff=""
-# latest_supported_version=""
-
-# for entry in ${angular_eol_data}; do
-#     eol=$(echo "${entry}" | jq -r '.eol')
-#     eol_date=$(date_to_timestamp "$eol")
-
-#     # Calculate the difference between current date and end of life date
-#     diff=$((eol_date - current_date))
-#     abs_diff=${diff#-}
-
-#     # Check if the difference is smaller than the minimum or if it's the first iteration
-#     if [ -z "$min_diff" ] || [ "$abs_diff" -lt "$min_diff" ]; then
-#         min_diff="$abs_diff"
-#         latest_supported_version=$(echo "${entry}" | jq -r '.cycle')
-#     fi
-# done
-
-# echo "Cycle with closest end of life date to current date: $latest_supported_version"
-
-# if [[ $angular_version -lt $latest_supported_version ]];then
-#     echo "New version ${latest_supported_version} needed in deprecation map"
-#     git config user.name github-actions
-#     git config user.email github-actions@github.com
-#     git pull
-#     git checkout -b angular-update
-#     yq eval -i '.npm["angular/core"].version = '\"$latest_supported_version\" $deprecation_config_file
-#     # Add 30 days
-#     one_month_from_now=$(expr $current_date + 2592000)
-#     one_month_from_now=$(timestamp_to_date "$one_month_from_now")
-#     yq eval -i '.npm["angular/core"].date_deadline = '\"$one_month_from_now\" $deprecation_config_file
-#     git add "$deprecation_config_file"
-#     git commit -m "Auto-Updating Angular Version"
-#     git push --set-upstream origin angular-update
-
-#     pr_args=(
-#         --title "Update Angular Version"
-#         --body "Automated updates for Angular deprecations"
-#         --base master
-#         --head angular-update
-#     )
-#     gh pr create "${pr_args[@]}"
-# else
-#     echo "File is showing most recent supported Angular version already"
-# fi
+    if [ ${#major_upgrades[@]} -gt 0 ]; then
+        create_branch "major"
+    fi
+fi
