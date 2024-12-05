@@ -1,8 +1,10 @@
-#!/bin/bash
+#!/usr/local/bin/bash
 anne_token=""
 deprecation_config_file="../nagger-versions.yaml"
-# declare global arrays
-declare -a minor_upgrades major_upgrades subkeys
+# declare global arrays and variables
+declare -A minor_upgrades major_upgrades
+declare -a subkeys
+current_date=$(date +%s)
 
 extract_data() {
 
@@ -45,7 +47,6 @@ get_latest_version_eol() {
     eol_data=$(curl -s "$endpoint" | jq -c '.[]')
 
     # Get the current date in Unix timestamp
-    current_date=$(date +%s)
     min_diff=""
     latest_supported_version=""
 
@@ -64,8 +65,6 @@ get_latest_version_eol() {
         fi
     done
 
-    echo "Cycle with closest end of life date to current date: $latest_supported_version"
-
     echo "$latest_supported_version"
 }
 
@@ -75,14 +74,19 @@ compare_versions() {
     local key="$3"
     local subkey="$4"
 
+    # Encode / as # and . as ~ for use in associative arrays
+    encoded_subkey=$(printf "%s" "$subkey" | sed 's/\//#/g; s/\./~/g')
+
     # Extract major version from nagger & latest version for comparison
     current_major="${current_version%%.*}"
     required_major="${latest_version%%.*}"
 
     # Detect major version change - break if detected
     if [[ "$current_major" -ne "$required_major" ]]; then
-        echo "Major version change detected: Current=$current_major, Required=$required_major"
-        major_upgrades["$key:$subkey"]="$latest_version"
+        echo "Major version change detected: Current=$current_version, Required=$latest_version Subkey=$subkey"
+        
+        # Update the major_upgrades associative array with key and encoded subkey
+        major_upgrades["${key}_${encoded_subkey}"]="$latest_version"
         return
     fi
 
@@ -90,20 +94,26 @@ compare_versions() {
     if [ "$(printf '%s\n' "$current_version" "$latest_version" | sort -V | head -n 1)" = "$latest_version" ]; then
         echo "Version is sufficient: $current_version"
     else
-        echo "Version is outdated: $current_version (minimum required: $latest_version)"
-        minor_upgrades["$key:$subkey"]="$latest_version"
+        echo "Version is outdated: $current_version (minimum required: $latest_version)  Subkey=$subkey"
+        
+        # Update the minor_upgrades associative array with key and encoded subkey
+        minor_upgrades["${key}_${encoded_subkey}"]="$latest_version"
     fi
 }
 
+
 date_to_timestamp() {
     # If debugging locally use below date instead   
-    # date -jf "%Y-%m-%d" "$1" +%s
-    date -d "$1" +%s
+     date -jf "%Y-%m-%d" "$1" +%s
+    #  date -d "$1" +%s
 }
 
 timestamp_to_date() {
-    date -d "@$1" "+%Y-%m-%d"
+    # date -d "@$1" "+%Y-%m-%d"
+    date -r "$1" "+%Y-%m-%d"
+
 }
+
 
 update_nagger() {
     local key="$1"
@@ -128,14 +138,17 @@ create_branch() {
         branch="minor-updates"
         upgrades=""
 
-        git checkout master
-        git checkout -b $branch
+        # git checkout master
+        # git checkout -b $branch
         
         # loop minor_upgrades entries & split key on : deliminater to get key & subkey
-        for entry in "${minor_upgrades[@]}"; do
-            IFS=":" read -r key subkey <<< "$entry"
-            # get value of entry which is the new version
-            version=${minor_upgrades["$key:$subkey"]}
+        for entry in "${!minor_upgrades[@]}"; do
+            IFS="_" read -r key encoded_subkey <<< "$entry"
+            # get value of the new version
+            version=${minor_upgrades[$entry]}
+            # decode the subkey to replace te # and ~
+            subkey=$(printf "%s" "$encoded_subkey" | sed 's/#/\//g; s/~/\./g')
+
             # update nagger versions yaml with new version
             update_nagger "$key" "$subkey" "$version"
 
@@ -149,27 +162,29 @@ create_branch() {
 
         # commit & create minor upgrades PR
         commit_message="Auto-Updating minor versions - $upgrades"
-        create_pr $branch "$commit_message" "$upgrades"
+        create_pr $branch "$commit_message"
     fi
 
     # loop major_upgrades entries & split key on : deliminater to get key & subkey
     if [ "$pr_type" = "major" ]; then
-        for entry in "${major_upgrades[@]}"; do
-            git checkout master
-            IFS=":" read -r key subkey <<< "$entry"
+        for entry in "${!major_upgrades[@]}"; do
+            # git checkout master
+            IFS="_" read -r key encoded_subkey <<< "$entry"
+            # get value of the new version
+            version=${major_upgrades[$entry]}
+            # decode the subkey to replace te # and ~
+            subkey=$(printf "%s" "$encoded_subkey" | sed 's/#/\//g; s/~/\./g')
 
             # shorten terraform provider keys as they're quite long
             if [ "$key" == "terraform" ] && [ ! "$subkey" == "terraform" ]; then
-                component_name=${subkey#*/}
+                component_name="${subkey#*/}"  
             else
-                component_name=$subkey
+                component_name="$subkey"
             fi
 
             branch="$key-$component_name-major-update"
-            git checkout -b "$branch"
+            # git checkout -b "$branch"
 
-            # get value of entry which is the new version
-            version=${major_upgrades["$key:$subkey"]}
             # update nagger versions yaml with new version
             update_nagger "$key" "$subkey" "$version"
 
@@ -184,17 +199,19 @@ create_pr() {
     local branch="$1"
     local commit_message="$2"
 
+    echo "Branch=$branch"
+    echo "Commit message=$commit_message"
     # create the PR & push to origin remote
-    git add "$deprecation_config_file"
-    git commit -m "$commit_message"
-    git push --set-upstream origin "$branch"
-    pr_args=(
-        --title "$commit_message"
-        --body "$commit_message"
-        --base master
-        --head "$branch"
-    )
-    gh pr create "${pr_args[@]}"
+    # git add "$deprecation_config_file"
+    # git commit -m "$commit_message"
+    # git push --set-upstream origin "$branch"
+    # pr_args=(
+    #     --title "$commit_message"
+    #     --body "$commit_message"
+    #     --base master
+    #     --head "$branch"
+    # )
+    # gh pr create "${pr_args[@]}"
 }
 
 
