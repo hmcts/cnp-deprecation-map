@@ -190,7 +190,7 @@ create_pr() {
     local branch="$1"
     local commit_message="$2"
 
-    create the PR & push to origin remote
+    # create the PR & push to origin remote
     git add "$deprecation_config_file"
     git commit -m "$commit_message"
     git push --set-upstream origin "$branch"
