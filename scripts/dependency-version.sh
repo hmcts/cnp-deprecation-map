@@ -1,5 +1,4 @@
-#!/usr/local/bin/bash
-anne_token=""
+#!/bin/bash
 deprecation_config_file="../nagger-versions.yaml"
 # declare global arrays and variables
 declare -A minor_upgrades major_upgrades
@@ -74,9 +73,6 @@ compare_versions() {
     local key="$3"
     local subkey="$4"
 
-    # Encode / as # and . as ~ for use in associative arrays
-    encoded_subkey=$(printf "%s" "$subkey" | sed 's/\//#/g; s/\./~/g')
-
     # Extract major version from nagger & latest version for comparison
     current_major="${current_version%%.*}"
     required_major="${latest_version%%.*}"
@@ -86,7 +82,8 @@ compare_versions() {
         echo "Major version change detected: Current=$current_version, Required=$latest_version Subkey=$subkey"
         
         # Update the major_upgrades associative array with key and encoded subkey
-        major_upgrades["${key}_${encoded_subkey}"]="$latest_version"
+        composite_key="${key}_${subkey}"
+        major_upgrades["$composite_key"]="$latest_version"
         return
     fi
 
@@ -95,23 +92,21 @@ compare_versions() {
         echo "Version is sufficient: $current_version"
     else
         echo "Version is outdated: $current_version (minimum required: $latest_version)  Subkey=$subkey"
-        
+        composite_key="${key}_${subkey}"
         # Update the minor_upgrades associative array with key and encoded subkey
-        minor_upgrades["${key}_${encoded_subkey}"]="$latest_version"
+        minor_upgrades["$composite_key"]="$latest_version"
     fi
 }
 
 
 date_to_timestamp() {
     # If debugging locally use below date instead   
-     date -jf "%Y-%m-%d" "$1" +%s
-    #  date -d "$1" +%s
+    # date -jf "%Y-%m-%d" "$1" +%s
+    date -d "$1" +%s
 }
 
 timestamp_to_date() {
-    # date -d "@$1" "+%Y-%m-%d"
-    date -r "$1" "+%Y-%m-%d"
-
+    date -d "@$1" "+%Y-%m-%d"
 }
 
 
@@ -124,11 +119,11 @@ update_nagger() {
     yq eval -i ".${key}[\"${subkey}\"].version = \"$latest_version\"" "$deprecation_config_file"
     
     # Calculate the new deadline date
-    one_month_from_now=$(expr "$current_date" + 2592000)
-    one_month_from_now=$(timestamp_to_date "$one_month_from_now")
+    two_months_from_now=$(expr "$current_date" + 5184000)
+    two_months_from_now=$(timestamp_to_date "$two_months_from_now")
 
     # Update nagger version yaml with the new deadline date
-    yq eval -i ".${key}[\"${subkey}\"].date_deadline = \"$one_month_from_now\"" "$deprecation_config_file"
+    yq eval -i ".${key}[\"${subkey}\"].date_deadline = \"$two_months_from_now\"" "$deprecation_config_file"
 }
 
 create_branch() {
@@ -138,16 +133,14 @@ create_branch() {
         branch="minor-updates"
         upgrades=""
 
-        # git checkout master
-        # git checkout -b $branch
+        git checkout master
+        git checkout -b $branch
         
-        # loop minor_upgrades entries & split key on : deliminater to get key & subkey
+        # loop minor_upgrades entries & split key on _ deliminater to get key & subkey
         for entry in "${!minor_upgrades[@]}"; do
-            IFS="_" read -r key encoded_subkey <<< "$entry"
+            IFS="_" read -r key subkey <<< "$entry"
             # get value of the new version
             version=${minor_upgrades[$entry]}
-            # decode the subkey to replace te # and ~
-            subkey=$(printf "%s" "$encoded_subkey" | sed 's/#/\//g; s/~/\./g')
 
             # update nagger versions yaml with new version
             update_nagger "$key" "$subkey" "$version"
@@ -165,15 +158,13 @@ create_branch() {
         create_pr $branch "$commit_message"
     fi
 
-    # loop major_upgrades entries & split key on : deliminater to get key & subkey
+    # loop major_upgrades entries & split key on _ deliminater to get key & subkey
     if [ "$pr_type" = "major" ]; then
         for entry in "${!major_upgrades[@]}"; do
-            # git checkout master
-            IFS="_" read -r key encoded_subkey <<< "$entry"
+            git checkout master
+            IFS="_" read -r key subkey <<< "$entry"
             # get value of the new version
             version=${major_upgrades[$entry]}
-            # decode the subkey to replace te # and ~
-            subkey=$(printf "%s" "$encoded_subkey" | sed 's/#/\//g; s/~/\./g')
 
             # shorten terraform provider keys as they're quite long
             if [ "$key" == "terraform" ] && [ ! "$subkey" == "terraform" ]; then
@@ -183,7 +174,7 @@ create_branch() {
             fi
 
             branch="$key-$component_name-major-update"
-            # git checkout -b "$branch"
+            git checkout -b "$branch"
 
             # update nagger versions yaml with new version
             update_nagger "$key" "$subkey" "$version"
@@ -199,19 +190,17 @@ create_pr() {
     local branch="$1"
     local commit_message="$2"
 
-    echo "Branch=$branch"
-    echo "Commit message=$commit_message"
-    # create the PR & push to origin remote
-    # git add "$deprecation_config_file"
-    # git commit -m "$commit_message"
-    # git push --set-upstream origin "$branch"
-    # pr_args=(
-    #     --title "$commit_message"
-    #     --body "$commit_message"
-    #     --base master
-    #     --head "$branch"
-    # )
-    # gh pr create "${pr_args[@]}"
+    create the PR & push to origin remote
+    git add "$deprecation_config_file"
+    git commit -m "$commit_message"
+    git push --set-upstream origin "$branch"
+    pr_args=(
+        --title "$commit_message"
+        --body "$commit_message"
+        --base master
+        --head "$branch"
+    )
+    gh pr create "${pr_args[@]}"
 }
 
 
@@ -240,10 +229,8 @@ for key in "${keys[@]}"; do
                 break
                 ;;
             *github.com*)
-                # insert PAT to increase GH rate-limit
-                endpoint_token=$(echo "$endpoint" | sed "s|https://|https://$anne_token@|")
                 # Get latest stable version from github API then compare with nagger version
-                latest_version=$(get_latest_version_github "$endpoint_token")
+                latest_version=$(get_latest_version_github "$endpoint")
                 compare_versions "$version" "$latest_version" "$key" "$subkey"
                 ;;
             *endoflife.date*)
