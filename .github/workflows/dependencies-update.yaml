@@ -14,7 +14,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Check Latest Dependency Versions
+      - name: Check Latest Angular, Terraform, Terraform Providers and Helm Versions
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./dependency-version.sh
+        run: ./dependency-versions.sh
