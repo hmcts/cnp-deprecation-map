@@ -62,8 +62,8 @@ helm:
     date_deadline: "2024-07-30"
     release_api: "https://api.github.com/repos/hmcts/chart-servicebus/releases"
   ccd:
-    version: "8.0.27"
-    date_deadline: "2023-03-29"
+    version: "9.2.1"
+    date_deadline: "2025-02-04"
     release_api: "https://api.github.com/repos/hmcts/chart-ccd/releases"
 gradle:
   java-logging:
