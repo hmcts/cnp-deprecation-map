@@ -134,6 +134,7 @@ create_branch() {
         upgrades=""
 
         git checkout master
+        git pull
         git checkout -b $branch
         
         # loop minor_upgrades entries & split key on _ deliminater to get key & subkey
@@ -174,6 +175,7 @@ create_branch() {
             fi
 
             branch="$key-$component_name-major-update"
+            git pull
             git checkout -b "$branch"
 
             # update nagger versions yaml with new version
