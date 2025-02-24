@@ -74,3 +74,9 @@ npm:
     version: "16"
     date_deadline: "2024-10-18"
     release_api: "https://endoflife.date/api/angular.json"
+  pa11y:
+    version: "8.0.0"
+    date_deadline: "2025-03-28"
+  puppeteer:
+    version: "20.0.0"
+    date_deadline: "2025-03-28"
