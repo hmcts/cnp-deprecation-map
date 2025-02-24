@@ -193,6 +193,12 @@ create_pr() {
     # create the PR & push to origin remote
     git add "$deprecation_config_file"
     git commit -m "$commit_message"
+    [[ $(git ls-remote --exit-code --heads origin $branch) ]] && remote_branch_exists=true || remote_branch_exists=false
+    if [ "$remote_branch_exists" = true ]; then
+        # Delete remote branch and just re-push
+        git push origin --delete "$branch"
+    fi
+        
     git push --set-upstream origin "$branch"
     pr_args=(
         --title "$commit_message"
