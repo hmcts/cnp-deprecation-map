@@ -77,6 +77,3 @@ npm:
   pa11y:
     version: "8.0.0"
     date_deadline: "2025-03-28"
-  puppeteer:
-    version: "20.0.0"
-    date_deadline: "2025-03-28"
