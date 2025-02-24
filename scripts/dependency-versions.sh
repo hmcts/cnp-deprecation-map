@@ -194,7 +194,6 @@ create_pr() {
     git add "$deprecation_config_file"
     git commit -m "$commit_message"
     [[ $(git ls-remote --exit-code --heads origin $branch) ]] && remote_branch_exists=true || remote_branch_exists=false
-    # Determine if there are changes against PR branch and pull if so
     if [ "$remote_branch_exists" = true ]; then
         # Delete remote branch and just re-push
         git push origin --delete "$branch"
