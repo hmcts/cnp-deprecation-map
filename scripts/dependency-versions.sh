@@ -196,7 +196,8 @@ create_pr() {
     [[ $(git ls-remote --exit-code --heads origin $branch) ]] && remote_branch_exists=true || remote_branch_exists=false
     # Determine if there are changes against PR branch and pull if so
     if [ "$remote_branch_exists" = true ]; then
-        git pull origin "$branch"
+        # Delete remote branch and just re-push
+        git push origin --delete "$branch"
     fi
         
     git push --set-upstream origin "$branch"
