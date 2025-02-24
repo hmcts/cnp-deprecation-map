@@ -197,6 +197,7 @@ create_pr() {
     # Determine if there are changes against PR branch and pull if so
     if [ "$remote_branch_exists" = true ]
         git pull origin "$branch"
+    fi
         
     git push --set-upstream origin "$branch"
     pr_args=(
