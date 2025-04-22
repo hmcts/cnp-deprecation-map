@@ -13,11 +13,16 @@ terraform:
     date_deadline: "2024-12-30"
     release_api: "https://api.github.com/repos/dynatrace-oss/terraform-provider-dynatrace/releases"
   registry.terraform.io/hashicorp/azuread:
-    version: "2.33.0"
+    version: "3.3.0"
     date_deadline: "2024-12-30"
     release_api: "https://api.github.com/repos/hashicorp/terraform-provider-azuread/releases"
+    exceptions:
+      - repo: "https://github.com/hmcts/cnp-plum-shared-infrastructure"
+        date_deadline: "2025-03-31"
+      - repo: "https://github.com/hmcts/azure-public-dns"
+        date_deadline: "2026-03-31"
   registry.terraform.io/hashicorp/azurerm:
-    version: "4.0.0"
+    version: "5.0.0"
     date_deadline: "2025-04-30"
     release_api: "https://api.github.com/repos/hashicorp/terraform-provider-azurerm/releases"
   registry.terraform.io/integrations/github:
@@ -38,9 +43,12 @@ helm:
     date_deadline: "2025-03-31"
     release_api: "https://api.github.com/repos/hmcts/chart-java/releases"
   nodejs:
-    version: "3.2.0"
+    version: "3.3.0"
     date_deadline: "2025-03-31"
     release_api: "https://api.github.com/repos/hmcts/chart-nodejs/releases"
+    exceptions:
+      - repo: "https://github.com/hmcts/labs-abhivan-nodejs.git"
+        date_deadline: "2025-04-20"
   job:
     version: "2.2.0"
     date_deadline: "2025-03-31"
@@ -65,18 +73,8 @@ helm:
     version: "8.0.27"
     date_deadline: "2023-03-29"
     release_api: "https://api.github.com/repos/hmcts/chart-ccd/releases"
-gradle:
-  java-logging:
-    version: "6.0.1"
-    date_deadline: "2023-10-28"
 npm:
   angular/core:
     version: "16"
     date_deadline: "2024-10-18"
     release_api: "https://endoflife.date/api/angular.json"
-  pa11y:
-    version: "8.0.0"
-    date_deadline: "2025-03-28"
-  puppeteer:
-    version: "19.0.0"
-    date_deadline: "2025-03-28"
