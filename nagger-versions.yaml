@@ -1,3 +1,25 @@
+# nagger-versions.yaml
+#
+# This file defines the versions and deprecation deadlines for various dependencies.
+# You can also specify **exceptions** for particular repositories under a dependency.
+# Exceptions allow you to override the default `date_deadline` for specific repositories.
+#
+# Example format for adding exceptions:
+# 
+#   dependency_name:
+#     version: "X.Y.Z"
+#     date_deadline: "YYYY-MM-DD"   # Default deprecation deadline
+#     release_api: "<API_URL>"     # API for fetching the latest versions
+#     exceptions:
+#       - repo: "https://github.com/hmcts/<repository_name>"
+#         date_deadline: "YYYY-MM-DD" # Custom deadline for this repository
+#       - repo: "https://github.com/hmcts/<repository_name_2>"
+#         date_deadline: "YYYY-MM-DD" # Custom deadline for another repository
+#
+# The scripts will:
+# - Use the `date_deadline` defined under `exceptions` if a repository matches the given URL.
+# - Retain the default `date_deadline` for all other cases.
+#
 ---
 terraform:
   terraform:
