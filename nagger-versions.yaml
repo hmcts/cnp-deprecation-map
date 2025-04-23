@@ -17,8 +17,8 @@ terraform:
     date_deadline: "2024-12-30"
     release_api: "https://api.github.com/repos/hashicorp/terraform-provider-azuread/releases"
   registry.terraform.io/hashicorp/azurerm:
-    version: "4.0.0"
-    date_deadline: "2025-04-30"
+    version: "4.26.0"
+    date_deadline: "2025-06-22"
     release_api: "https://api.github.com/repos/hashicorp/terraform-provider-azurerm/releases"
   registry.terraform.io/integrations/github:
     version: "5.16.0"
