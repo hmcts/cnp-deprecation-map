@@ -227,13 +227,13 @@ for key in "${keys[@]}"; do
     for subkey in "${subkeys[@]}"; do
         data=$(extract_data "${key}" "${subkey}")
         IFS=',' read -r version deadline endpoint <<< "$data"
+        
+        if [ -z "$endpoint" ] || [ "$endpoint" == "null" ]; then
+            echo "Skipping ${key} -> ${subkey}: release_api is null or empty."
+            continue
+        fi
 
-        # check endpoint
         case "$endpoint" in
-            undefined)
-                # If release_api is undefined break the loop
-                break
-                ;;
             *github.com*)
                 # Get latest stable version from github API then compare with nagger version
                 latest_version=$(get_latest_version_github "$endpoint")
@@ -245,7 +245,7 @@ for key in "${keys[@]}"; do
                 compare_versions "$version" "$latest_version" "$key" "$subkey"
                 ;;
             *)
-                # We should never hit this case due to the use of "undefined" above
+                # We should never hit this case due to the use of "undefined" or "null" above
                 # Here as a catch-all anyway, just in case...
                 echo "Could not determine release_api (main):" >&2
                 echo "key: $key, subkey: $subkey, release_api: $endpoint" >&2
