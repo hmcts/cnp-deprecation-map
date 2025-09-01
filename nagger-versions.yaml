@@ -93,8 +93,8 @@ gradle:
     date_deadline: "2023-10-28"
 npm:
   angular/core:
-    version: "16"
-    date_deadline: "2024-10-18"
+    version: "18"
+    date_deadline: "2025-10-31"
     release_api: "https://endoflife.date/api/angular.json"
   pa11y:
     version: "8.0.0"
