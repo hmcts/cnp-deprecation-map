@@ -51,8 +51,8 @@ terraform:
     date_deadline: "2024-12-30"
     release_api: "https://api.github.com/repos/microsoft/terraform-provider-azuredevops/releases"
   registry.terraform.io/paloaltonetworks/panos:
-    version: "1.11.0"
-    date_deadline: "2024-12-30"
+    version: "2.0.5"
+    date_deadline: "2025-12-31"
     release_api: "https://api.github.com/repos/PaloAltoNetworks/terraform-provider-panos/releases"
 helm:
   java:
