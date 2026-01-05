@@ -102,3 +102,8 @@ npm:
   puppeteer:
     version: "19.0.0"
     date_deadline: "2025-03-28"
+acr:
+  old_registry_migration:
+    pattern: "hmctsprivate|hmctspublic|hmctssandbox|sdshmctspublic|sdshmctspublicsbox"
+    new_registries: "hmctsprod,hmctssbox"
+    date_deadline: "2026-02-10"
