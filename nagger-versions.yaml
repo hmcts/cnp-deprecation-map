@@ -89,8 +89,8 @@ helm:
     release_api: "https://api.github.com/repos/hmcts/chart-ccd/releases"
 gradle:
   java-logging:
-    version: "6.0.1"
-    date_deadline: "2023-10-28"
+    version: "8.0.0"
+    date_deadline: "2026-05-16"
 java:
   java17:
     version: "17"
