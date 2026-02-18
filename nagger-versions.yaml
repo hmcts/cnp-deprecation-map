@@ -90,7 +90,7 @@ helm:
 gradle:
   java-logging:
     version: "8.0.0"
-    date_deadline: "2026-05-16"
+    date_deadline: "2026-06-01"
 java:
   java17:
     version: "17"
