@@ -106,4 +106,4 @@ acr:
   old_registry_migration:
     pattern: "hmctsprivate|hmctspublic|hmctssandbox|sdshmctspublic|sdshmctspublicsbox"
     new_registries: "hmctsprod,hmctssbox"
-    date_deadline: "2026-02-10"
+    date_deadline: "2026-04-15"
