@@ -42,6 +42,9 @@ terraform:
     version: "4.0.0"
     date_deadline: "2026-03-30"
     release_api: "https://api.github.com/repos/hashicorp/terraform-provider-azurerm/releases"
+    exceptions:
+      - repo: "https://github.com/hmcts/hub-panorama-terraform"
+        date_deadline: "2026-04-05"
   registry.terraform.io/integrations/github:
     version: "5.16.0"
     date_deadline: "2024-12-30"
