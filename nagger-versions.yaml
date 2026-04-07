@@ -44,7 +44,7 @@ terraform:
     release_api: "https://api.github.com/repos/hashicorp/terraform-provider-azurerm/releases"
     exceptions:
       - repo: "https://github.com/hmcts/hub-panorama-terraform"
-        date_deadline: "2026-04-05"
+        date_deadline: "2026-07-01"
       - repo: "https://github.com/hmcts/hub-terraform-infra"
         date_deadline: "2026-04-05"
   registry.terraform.io/integrations/github:
