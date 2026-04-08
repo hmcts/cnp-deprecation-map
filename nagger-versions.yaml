@@ -46,7 +46,7 @@ terraform:
       - repo: "https://github.com/hmcts/hub-panorama-terraform"
         date_deadline: "2026-07-01"
       - repo: "https://github.com/hmcts/hub-terraform-infra"
-        date_deadline: "2026-04-05"
+        date_deadline: "2026-07-01"
   registry.terraform.io/integrations/github:
     version: "5.16.0"
     date_deadline: "2024-12-30"
