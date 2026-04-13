@@ -48,8 +48,8 @@ terraform:
       - repo: "https://github.com/hmcts/hub-terraform-infra"
         date_deadline: "2026-07-01"
   registry.terraform.io/integrations/github:
-    version: "5.16.0"
-    date_deadline: "2024-12-30"
+    version: "6.11.1"
+    date_deadline: "2026-05-31"
     release_api: "https://api.github.com/repos/integrations/terraform-provider-github/releases"
   registry.terraform.io/microsoft/azuredevops:
     version: "0.3.0"
