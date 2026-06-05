@@ -120,6 +120,6 @@ acr:
     date_deadline: "2026-04-15"
 jenkins:
   library:
-    pattern: "master"
+    pattern: "master|DTSPO-30114/library-nagger"
     version: "2.0.0"
-    date_deadline: "2026-05-31"
+    date_deadline: "2026-12-31"
