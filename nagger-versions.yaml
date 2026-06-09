@@ -118,3 +118,8 @@ acr:
     pattern: "hmctsprivate|hmctspublic|hmctssandbox|sdshmctspublic|sdshmctspublicsbox"
     new_registries: "hmctsprod,hmctssbox"
     date_deadline: "2026-04-15"
+jenkins:
+  library:
+    pattern: "DTSPO-30114/library-nagger"
+    version: "2.0.0"
+    date_deadline: "2026-08-31"
