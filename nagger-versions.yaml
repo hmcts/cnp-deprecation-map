@@ -120,6 +120,6 @@ acr:
     date_deadline: "2026-04-15"
 jenkins:
   library:
-    pattern: "DTSPO-30107-jenkins-agents"
+    pattern: "DTSPO-30107-jenkins-agents|DTSPO-30107-jenkins-agents-2"
     version: "2.4.0"
     date_deadline: "2026-08-31"
