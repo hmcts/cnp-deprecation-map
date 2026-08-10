@@ -121,5 +121,5 @@ acr:
 jenkins:
   library:
     pattern: "DTSPO-30107-jenkins-agents|DTSPO-30107-jenkins-agents-2|DTSPO-30107-jenkins-agents-3"
-    version: "2.4.0"
+    version: "2.5.0"
     date_deadline: "2026-08-31"
