@@ -93,8 +93,8 @@ helm:
     date_deadline: "2026-10-08"
     release_api: "https://api.github.com/repos/hmcts/chart-postgresql/releases"
   ccd:
-    version: "8.0.27"
-    date_deadline: "2023-03-29"
+    version: "9.2.3"
+    date_deadline: "2026-10-31"
     release_api: "https://api.github.com/repos/hmcts/chart-ccd/releases"
 gradle:
   java-logging:
