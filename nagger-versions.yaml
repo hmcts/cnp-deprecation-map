@@ -558,5 +558,5 @@ terraform_modules:
 database:
   postgresql:
     version: "15"
-    date_deadline: "2026-11-12"
+    date_deadline: "2027-02-01"
     message: "PostgreSQL 14 and below are deprecated. Please upgrade to PostgreSQL 15 or later."
