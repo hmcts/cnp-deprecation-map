@@ -519,6 +519,11 @@ helm:
         date_deadline: "2026-12-31"
       - repo: "https://github.com/hmcts/rpts-shared-infrastructure"
         date_deadline: "2026-12-31"
+  idam-pr:
+    version: "2.4.0"
+    date_deadline: "2026-12-01"
+    release_api: "https://api.github.com/repos/hmcts/chart-idam-pr/releases"
+    message: "The idam-pr chart is redundant. Please remove the dependency entirely. If you retain it temporarily, upgrade to at least the required version."
 gradle:
   java-logging:
     version: "8.0.0"
