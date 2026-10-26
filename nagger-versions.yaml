@@ -534,6 +534,10 @@ java:
     date_deadline: "2026-06-01"
     message: "Java 17 is deprecated. Please upgrade to Java 21 or Java 25."
     exceptions: []
+nodejs:
+  node_version:
+    version: "22.23.4"
+    date_deadline: "2026-11-09"
 npm:
   angular/core:
     version: "16"
