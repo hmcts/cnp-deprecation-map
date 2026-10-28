@@ -537,6 +537,10 @@ java:
 nodejs:
   node_version:
     version: "22.23.4"
+    major_versions:
+      "24":
+        version: "24.3.1"
+        date_deadline: "2026-11-09"
     date_deadline: "2026-11-09"
 npm:
   angular/core:
