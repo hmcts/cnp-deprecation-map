@@ -519,6 +519,11 @@ helm:
         date_deadline: "2026-12-31"
       - repo: "https://github.com/hmcts/rpts-shared-infrastructure"
         date_deadline: "2026-12-31"
+  idam-pr:
+    version: "2.4.0"
+    date_deadline: "2026-12-01"
+    release_api: "https://api.github.com/repos/hmcts/chart-idam-pr/releases"
+    message: "The idam-pr chart is redundant. Please remove the dependency entirely. If you retain it temporarily, upgrade to at least the required version."
 gradle:
   java-logging:
     version: "8.0.0"
@@ -529,6 +534,14 @@ java:
     date_deadline: "2026-06-01"
     message: "Java 17 is deprecated. Please upgrade to Java 21 or Java 25."
     exceptions: []
+nodejs:
+  node_version:
+    version: "22.23.4"
+    date_deadline: "2026-11-11"
+    major_versions:
+      "24":
+        version: "24.22.2"
+        date_deadline: "2026-11-11"
 npm:
   angular/core:
     version: "16"
@@ -689,3 +702,8 @@ service_connections:
         DTS-SHAREDSERVICES-SBOX: DTS-SHAREDSERVICES-SBOX-WIF
         DTS-SHAREDSERVICES-STG: DTS-SHAREDSERVICES-STG-WIF
         DTS-SHAREDSERVICES-TEST: DTS-SHAREDSERVICES-TEST-WIF
+database:
+  postgresql:
+    version: "15"
+    date_deadline: "2027-02-01"
+    message: "PostgreSQL 14 and below are deprecated. Please upgrade to PostgreSQL 15 or later."
