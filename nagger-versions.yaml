@@ -571,8 +571,6 @@ terraform_modules:
 service_connections:
   "legacy-service-connection":
     identity_type: "ServicePrincipal"
-    replacement_identity_type: "ManagedIdentity"
-    replacement_identity_name_suffix: "-WIF-mi"
     date_deadline: "2026-11-30"
     replacements:
       CNP:
