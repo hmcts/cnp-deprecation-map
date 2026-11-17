@@ -568,6 +568,10 @@ terraform_modules:
     pattern: "DTSPO-30107-additional-postgres-admins"
     version: "master"
     date_deadline: "2026-10-30"
+  cnp-module-key-vault:
+    pattern: "DTSPO-31965/remove-jenkins-ptl-access"
+    version: "master"
+    date_deadline: "2026-12-01"
 service_connections:
   "legacy-service-connection":
     identity_type: "ServicePrincipal"
