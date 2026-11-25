@@ -750,5 +750,4 @@ database:
     message: "PostgreSQL 14 and below are deprecated. Please upgrade to PostgreSQL 15 or later."
   postgresql_v3_sku:
     date_deadline: "June 2027"
-    message: "PostgreSQL Flexible Server v3 SKUs will not be covered by renewed reserved instances."
-    upgrade_guide: "https://hmcts.atlassian.net/wiki/spaces/DTSPO/pages/340297585/PostgreSQL+Flexible+Server+14+-+18+Upgrade+Validation+SKU+Compute+Upgrade"
+    message: "PostgreSQL Flexible Server v3 SKUs will not be covered by renewed reserved instances. Upgrade guidance: https://hmcts.atlassian.net/wiki/spaces/DTSPO/pages/340297585/PostgreSQL+Flexible+Server+14+-+18+Upgrade+Validation+SKU+Compute+Upgrade"
